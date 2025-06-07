@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "runvenv"
+authors = [
+    {name = "Philipp Unger", email = "philipp.unger.1988@gmail.com"},
+]
+description = "run python scripts or modules in a venv"
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
+dependencies = []
+dynamic = ["version"]
+
+[project.scripts]
+runvenv = "runvenv:main"
+
+[tool.setuptools_scm]
+version_scheme = "python-simplified-semver"
