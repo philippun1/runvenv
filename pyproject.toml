@@ -7,7 +7,7 @@ name = "runvenv"
 authors = [
     {name = "Philipp Unger", email = "philipp.unger.1988@gmail.com"},
 ]
-description = "run python scripts or modules in a venv"
+description = "run python scripts or modules in a venv with a single command"
 readme = "README.md"
 requires-python = ">=3.8"
 license = "MIT"
@@ -16,6 +16,12 @@ classifiers = [
 ]
 dependencies = []
 dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://github.com/philippun1/runvenv"
+Repository = "https://github.com/philippun1/runvenv"
+"Bug Tracker" = "https://github.com/philippun1/runvenv/issues"
+
 
 [project.scripts]
 runvenv = "runvenv:main"
