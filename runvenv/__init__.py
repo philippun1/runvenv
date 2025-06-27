@@ -28,14 +28,14 @@ def run(venv_name: str, arguments: list[str]):
         return
 
     venv_path = _get_venv_path(venv_name)
-    is_windows = platform.platform() == "Windows"
+    is_windows = platform.system() == "Windows"
 
     env = os.environ
     venv_bin = venv_path / ("Scripts" if is_windows else "bin")
     env["PATH"] = str(venv_bin) + os.pathsep + env["PATH"]
     env["VIRTUAL_ENV"] = str(venv_path)
     python_exe = pathlib.Path(sys.executable).stem
-    arguments = [python_exe] + arguments
+    arguments = [str(venv_bin / python_exe)] + arguments
     subprocess.check_call(args=arguments, env=env)
 
 
