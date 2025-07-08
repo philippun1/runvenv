@@ -7,6 +7,8 @@ import argparse
 import platform
 import subprocess
 
+__version__ = "0.4"
+
 REQUIREMENTS_FILES = [
     "requirements.txt",
     ".requirements.txt",
@@ -98,6 +100,12 @@ A custom venv path or requirements file can be configured via parameters.
         "--init",
         action="store_true",
         help="only initialize the venv"
+    )
+
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=__version__
     )
 
     parser.add_argument(
