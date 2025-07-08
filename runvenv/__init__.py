@@ -84,13 +84,20 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description="""
 Runs a script or module in a venv and forwards *any* parameter.
-This includes non positional arguments like --help, --path, --requirements, etc.
+This includes non positional arguments like --help, --init, --path, --requirements, etc.
 
-If the venv does not exist yet, it will create it and also install all requirements
-in either reqirements.txt, .requirements.txt or .requirements.venv if availabe.
+With no parameters given this help will be shown. To only create a venv and not run anything \
+you can use the --init parameter. If the venv does not exist yet, it will create it and also install \
+all requirements in either reqirements.txt, .requirements.txt or .requirements.venv if availabe.
 
 A custom venv path or requirements file can be configured via parameters.
 """
+    )
+
+    parser.add_argument(
+        "--init",
+        action="store_true",
+        help="only initialize the venv"
     )
 
     parser.add_argument(
@@ -119,6 +126,10 @@ A custom venv path or requirements file can be configured via parameters.
     )
 
     args = sys.argv
+    if len(args) == 1:
+        parser.print_help()
+        sys.exit()
+
     arguments = parser.parse_args(args[1:])
 
     create(
