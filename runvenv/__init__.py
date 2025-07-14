@@ -7,7 +7,7 @@ import argparse
 import platform
 import subprocess
 
-__version__ = "0.4"
+__version__ = "0.4.1"
 
 REQUIREMENTS_FILES = [
     "requirements.txt",
