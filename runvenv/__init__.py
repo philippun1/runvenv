@@ -16,7 +16,7 @@ REQUIREMENTS_FILES = [
 ]
 
 
-def _get_venv_path(venv_name: str) -> pathlib.Path:
+def _get_venv_path(venv_name):
     if not venv_name:
         venv_name = ".venv"
 
@@ -24,7 +24,7 @@ def _get_venv_path(venv_name: str) -> pathlib.Path:
     return venv_path
 
 
-def run(venv_name: str, arguments: list[str]):
+def run(venv_name, arguments):
     """ run a list of python arguments inside a venv """
     if not arguments or len(arguments) < 1:
         return
@@ -41,7 +41,7 @@ def run(venv_name: str, arguments: list[str]):
     subprocess.check_call(args=arguments, env=env)
 
 
-def create(venv_name: str, requirements: str):
+def create(venv_name, requirements):
     """ create a venv """
     venv_path = _get_venv_path(venv_name)
     cwd_path = pathlib.Path(os.getcwd())
