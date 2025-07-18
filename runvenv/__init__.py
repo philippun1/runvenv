@@ -7,7 +7,7 @@ import argparse
 import platform
 import subprocess
 
-__version__ = "0.4.1"
+__version__ = "0.4.2"
 
 REQUIREMENTS_FILES = [
     "requirements.txt",
@@ -38,7 +38,9 @@ def run(venv_name, arguments):
     env["VIRTUAL_ENV"] = str(venv_path)
     python_exe = pathlib.Path(sys.executable).stem
     arguments = [str(venv_bin / python_exe)] + arguments
-    subprocess.check_call(args=arguments, env=env)
+    completed = subprocess.run(args=arguments, env=env, check=False)
+    if completed.returncode != 0:
+        sys.exit(completed.returncode)
 
 
 def create(venv_name, requirements):
