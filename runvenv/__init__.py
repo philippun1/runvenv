@@ -7,7 +7,7 @@ import argparse
 import platform
 import subprocess
 
-__version__ = "0.4.2"
+__version__ = "0.5"
 
 REQUIREMENTS_FILES = [
     "requirements.txt",
@@ -22,6 +22,44 @@ def _get_venv_path(venv_name):
 
     venv_path = pathlib.Path(venv_name).absolute()
     return venv_path
+
+
+def _check_if_up_to_date(venv_name, requirements):
+    up_to_date = False
+    venv_available = False
+    requirements_hash = ""
+    venv_path = _get_venv_path(venv_name)
+    requirement_path = _get_requirement_path(requirements)
+
+    if venv_path.exists():
+        venv_available = True
+
+        if requirement_path and requirement_path.exists():
+            with open(requirement_path, encoding="utf8") as requirement_file:
+                content = requirement_file.read().encode()
+                requirements_hash = hashlib.md5(content).hexdigest()
+
+                if (venv_path / ".runvenv_hash").exists():
+                    with open(venv_path / ".runvenv_hash", encoding="utf8") as hash_file:
+                        existing_hash = hash_file.read()
+                        if existing_hash == requirements_hash:
+                            up_to_date = True
+
+    return up_to_date, venv_available, requirements_hash
+
+
+def _get_requirement_path(requirements):
+    cwd_path = pathlib.Path(os.getcwd())
+    requirement_path = None
+    if requirements:
+        requirement_path = pathlib.Path(requirements).absolute()
+    else:
+        for file in REQUIREMENTS_FILES:
+            if (cwd_path / file).exists():
+                requirement_path = cwd_path / file
+                break
+
+    return requirement_path
 
 
 def run(venv_name, arguments):
@@ -46,40 +84,25 @@ def run(venv_name, arguments):
 def create(venv_name, requirements):
     """ create a venv """
     venv_path = _get_venv_path(venv_name)
-    cwd_path = pathlib.Path(os.getcwd())
+    requirement_path = _get_requirement_path(requirements)
 
-    if not venv_path.exists():
+    up_to_date, venv_available, requirements_hash = _check_if_up_to_date(
+        venv_name, requirement_path)
+
+    if not venv_available:
         subprocess.check_call(
             [sys.executable, "-m", "venv", venv_path]
         )
 
-    requirement_path = None
-    if requirements:
-        requirement_path = pathlib.Path(requirements).absolute()
-    else:
-        for file in REQUIREMENTS_FILES:
-            if (cwd_path / file).exists():
-                requirement_path = cwd_path / file
-                break
+    if not up_to_date and requirement_path:
+        run(
+            venv_name=venv_name,
+            arguments=["-m", "pip", "install", "-r", str(requirement_path)]
+        )
 
-    if requirement_path and requirement_path.exists():
-        with open(requirement_path, encoding="utf8") as requirement_file:
-            content = requirement_file.read().encode()
-            requirements_hash = hashlib.md5(content).hexdigest()
+        with open(venv_path / ".runvenv_hash", "w", encoding="utf8") as hash_file:
+            hash_file.write(requirements_hash)
 
-            if (venv_path / ".runvenv_hash").exists():
-                with open(venv_path / ".runvenv_hash", encoding="utf8") as hash_file:
-                    existing_hash = hash_file.read()
-                    if existing_hash == requirements_hash:
-                        return  # venv is up-to-date
-
-            run(
-                venv_name=venv_name,
-                arguments=["-m", "pip", "install", "-r", str(requirement_path)]
-            )
-
-            with open(venv_path / ".runvenv_hash", "w", encoding="utf8") as hash_file:
-                hash_file.write(requirements_hash)
 
 def main():
     """ main function called from __main__ """
@@ -88,11 +111,17 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description="""
 Runs a script or module in a venv and forwards *any* parameter.
-This includes non positional arguments like --help, --init, --path, --requirements, etc.
+This includes non positional arguments like --help, --init, --path, --check, --requirements, etc.
 
 With no parameters given this help will be shown. To only create a venv and not run anything \
 you can use the --init parameter. If the venv does not exist yet, it will create it and also install \
-all requirements in either reqirements.txt, .requirements.txt or .requirements.venv if availabe.
+all requirements in either reqirements.txt, .requirements.txt or .requirements.venv if available.
+
+To check if a venv is already set up use the parameter --check. \
+Depending on the status exit code is:
+    0 = up-to-date
+    1 = available but not up-to-date
+    2 = not available
 
 A custom venv path or requirements file can be configured via parameters.
 """
@@ -102,6 +131,12 @@ A custom venv path or requirements file can be configured via parameters.
         "--init",
         action="store_true",
         help="only initialize the venv"
+    )
+
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="check if the venv is set up properly"
     )
 
     parser.add_argument(
@@ -141,6 +176,22 @@ A custom venv path or requirements file can be configured via parameters.
         sys.exit()
 
     arguments = parser.parse_args(args[1:])
+
+    if arguments.check:
+        if arguments.init:
+            print("parameter --init has been ignored")
+
+        up_to_date, venv_available, _requirements_hash = _check_if_up_to_date(
+            venv_name=arguments.path,
+            requirements=arguments.requirements
+        )
+
+        if up_to_date:
+            sys.exit()
+        elif venv_available:
+            sys.exit(1)
+
+        sys.exit(2)
 
     create(
         venv_name=arguments.path,
